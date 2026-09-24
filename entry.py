@@ -26,3 +26,8 @@ class recurring_entry():
             self.end_date = datetime.datetime(year, month, day)
         except:
             print("Incorrect date format.")
+
+class prospective_entry():
+    def __init__(self, entry: entry_type, amount: float):
+        self.entry = entry
+        self.amount = amount
