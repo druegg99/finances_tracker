@@ -6,17 +6,19 @@ class entry_type(Enum):
     OUT = "expense"
 
 class entry():
-    def __init__(self, entry: entry_type, amount: float):
+    def __init__(self, entry: entry_type, label: str, amount: float):
         self.entry_time = datetime.datetime.now()
         self.entry = entry
         self.amount = amount
+        self.label = label
 
 class recurring_entry():
-    def __init__(self, entry: entry_type, amount: float):
+    def __init__(self, entry: entry_type, label: str, amount: float):
         self.entry = entry
         self.amount = amount
         self.start_date = datetime.datetime.now()
         self.end_date = None
+        self.label = label
 
     def end_now(self):
         self.end_date = datetime.datetime.now()
@@ -28,6 +30,7 @@ class recurring_entry():
             print("Incorrect date format.")
 
 class prospective_entry():
-    def __init__(self, entry: entry_type, amount: float):
+    def __init__(self, entry: entry_type, label: str, amount: float):
         self.entry = entry
         self.amount = amount
+        self.label = label
