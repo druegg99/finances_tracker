@@ -10,22 +10,87 @@ from entry.py import *
 # entries,..
 #
 # tentative entries (parent Entry class) aren't saved.
+# recurring entry format: IN/OUT, <quantity float>, recurring_type, <freq int days>, start_date year, start_date month, start_date day, end_date year, end_date month, end_date day, label
+# regular entry format: IN/OUT, <quantity float>, date year, date month, date day, label
 
 DAT_PATH = "databse/finances.dat"
 DAT_NOTFOUND = "Database not found"
 DAT_INCORRECT = "Database formatted incorrectly"
 
 def str_to_recurring(input: str) -> RecurringEntry:
-    pass
+    elements = input.split(", ", 10) #limit splits to 10, in case label contains commas
+
+    type: entry_type = None
+    if elements[0] == "income":
+        type = IN
+    if elements[0] == "expense":
+        type = OUT
+    if type == None:
+        raise ValueError(DAT_INCORRECT)
+    #If we get this far, database is likely correct so no more checks out of laziness
+
+    amount = float(elements[1])
+
+    frequency_type: recurring_type = None
+    if elements[2] == "yearly":
+        frequency_type = YEARLY
+    if elements[2] == "monthly":
+        frequency_type = MONTHLY
+    if elements[2] == "daily":
+        frequency_type = DAILY
+    if elements[2] == "custom":
+        frequency_type = CUSTOM
+
+    frequency_days: int = int(elements[3])
+
+    start_year = int(elements[4])
+    start_month = int(elements[5])
+    start_day = int(elements[6])
+    end_year = int(elements[7])
+    end_month = int(elements[8])
+    end_day = int(elements[9])
+
+    label = elements[10]
+
+    entry = RecurringEntry(type, label, amount, frequency_type, frequency_days)
+    entry.set_start(start_year, start_month, start_day)
+    if end_year > 0: #if end_date is None, format will write 0, 0, 0 for end date
+        entry.set_end(end_year, end_month, end_day)
+
+    return entry
 
 def str_to_regular(input: str) -> RegularEntry:
-    pass
+    elements = input.split(", ", 5)
+
+    type: entry_type = None
+    if elements[0] == "income":
+        type = IN
+    if elements[0] == "expense":
+        type = OUT
+    if type == None:
+        raise ValueError(DAT_INCORRECT)
+
+    amount = float(elements[1])
+
+    year = int(elements[2])
+    month = int(elements[3])
+    day = int(elements[4])
+
+    label = elements[5]
+
+    entry = RegularEntry(type, label, amount)
+    entry.set_date(year, month, day)
+
+    return entry
 
 def recurring_to_str(input: RecurringEntry) -> str:
-    pass
+    if input.end_date == None:
+        return f"{input.entry}, {input.amount}, {input.frequency}, {input.custom_frequency.days}, {input.start_date.year}, {input.start_date.month}, {input.start_date.day}, 0, 0, 0, {input.label}"
+    else:
+        return f"{input.entry}, {input.amount}, {input.frequency}, {input.custom_frequency.days}, {input.start_date.year}, {input.start_date.month}, {input.start_date.day}, {input.end_date.year}, {input.end_date.month}, {input.end_date.day}, {input.label}"
 
 def regular_to_str(input: RegularEntry) -> str:
-    pass
+    return f"{input.entry}, {input.amount}, {input.date.year}, {input.date.month}, {input.date.day}, {input.label}"
 
 
 def load_database(path: str = DAT_PATH) -> (list[RecurringEntry], list[RegularEntry]):
