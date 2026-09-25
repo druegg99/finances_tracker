@@ -1,6 +1,7 @@
 import os
 import shutil
 from entry.py import *
+from configvars import *
 
 #finances.dat format:
 # RECURRING
@@ -13,9 +14,6 @@ from entry.py import *
 # recurring entry format: IN/OUT, <quantity float>, recurring_type, <freq int days>, start_date year, start_date month, start_date day, end_date year, end_date month, end_date day, label
 # regular entry format: IN/OUT, <quantity float>, date year, date month, date day, label
 
-DAT_PATH = "databse/finances.dat"
-DAT_NOTFOUND = "Database not found"
-DAT_INCORRECT = "Database formatted incorrectly"
 
 def str_to_recurring(input: str) -> RecurringEntry:
     elements = input.split(", ", 10) #limit splits to 10, in case label contains commas
