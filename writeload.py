@@ -1,7 +1,7 @@
 import os
-import shutil
-from entry.py import *
+
 from configvars import *
+from entry import *
 
 #finances.dat format:
 # RECURRING
@@ -18,26 +18,28 @@ from configvars import *
 def str_to_recurring(input: str) -> RecurringEntry:
     elements = input.split(", ", 10) #limit splits to 10, in case label contains commas
 
-    type: entry_type = None
+    type = None
     if elements[0] == "income":
-        type = IN
+        type = entry_type.IN
     if elements[0] == "expense":
-        type = OUT
+        type = entry_type.OUT
     if type == None:
         raise ValueError(DAT_INCORRECT)
-    #If we get this far, database is likely correct so no more checks out of laziness
+
 
     amount = float(elements[1])
 
-    frequency_type: recurring_type = None
+    frequency_type = None
     if elements[2] == "yearly":
-        frequency_type = YEARLY
+        frequency_type = recurring_type.YEARLY
     if elements[2] == "monthly":
-        frequency_type = MONTHLY
+        frequency_type = recurring_type.MONTHLY
     if elements[2] == "daily":
-        frequency_type = DAILY
+        frequency_type = recurring_type.DAILY
     if elements[2] == "custom":
-        frequency_type = CUSTOM
+        frequency_type = recurring_type.CUSTOM
+    if frequency_type == None:
+        raise ValueError(DAT_INCORRECT)
 
     frequency_days: int = int(elements[3])
 
@@ -60,11 +62,11 @@ def str_to_recurring(input: str) -> RecurringEntry:
 def str_to_regular(input: str) -> RegularEntry:
     elements = input.split(", ", 5)
 
-    type: entry_type = None
+    type = None
     if elements[0] == "income":
-        type = IN
+        type = entry_type.IN
     if elements[0] == "expense":
-        type = OUT
+        type = entry_type.OUT
     if type == None:
         raise ValueError(DAT_INCORRECT)
 
@@ -88,21 +90,21 @@ def recurring_to_str(input: RecurringEntry) -> str:
         return f"{input.entry}, {input.amount}, {input.frequency}, {input.custom_frequency.days}, {input.start_date.year}, {input.start_date.month}, {input.start_date.day}, {input.end_date.year}, {input.end_date.month}, {input.end_date.day}, {input.label}"
 
 def regular_to_str(input: RegularEntry) -> str:
-    return f"{input.entry}, {input.amount}, {input.date.year}, {input.date.month}, {input.date.day}, {input.label}"
+    return f"{input.entry}, {input.amount}, {input.entry_time.year}, {input.entry_time.month}, {input.entry_time.day}, {input.label}"
 
 
-def load_database(path: str = DAT_PATH) -> (list[RecurringEntry], list[RegularEntry]):
+def load_database(path: str = DAT_PATH) -> tuple[list[RecurringEntry], list[RegularEntry], list[Entry]]:
     if not os.path.exists(path):
         raise OSError(-1, DAT_NOTFOUND)
     else:
         with open(path, "r") as f:
-            database = r.read()
+            database = f.read()
         dat_sections = database.split("\n\n")
         if dat_sections[0][:9] != "RECURRING" or dat_sections[1][:7] != "REGULAR":
             raise ValueError(DAT_INCORRECT)
         else:
-            recurring_entries: list[Entry] = []
-            regular_entries: list[Entry] = []
+            recurring_entries: list[RecurringEntry] = []
+            regular_entries: list[RegularEntry] = []
             recurring = dat_sections[0].split("\n")[1:]
             regular = dat_sections[1].split("\n")[1:-1] #write_database adds an extra line break in the end, hence the last line is removed
             if recurring[0] != "None":
@@ -111,21 +113,21 @@ def load_database(path: str = DAT_PATH) -> (list[RecurringEntry], list[RegularEn
             if regular[0] != "None":
                 for item in regular:
                     regular_entries.append(str_to_regular(item))
-            return (recurring_entries, regular_entries)
+            return (recurring_entries, regular_entries, []) #third list is for tentative entries, not included in saved files
 
-def write_database(path: str = DAT_PATH, regular_entries: list[RegularEntry], recurring_entries: list[RecurringEntry]) -> None:
+def write_database(entry_tuple: tuple[list[RecurringEntry], list[RegularEntry], list[Entry]], path: str = DAT_PATH) -> None:
     if not os.path.exists(os.path.dirname(path)):
-        os.mkdirs(os.path.dirname(path))
-    while open(path, "x") as f:
+        os.makedirs(os.path.dirname(path))
+    with open(path, "x") as f:
         f.write("RECURRING\n")
-        if recurring_entries:
-            for item in recurring_entries:
+        if entry_tuple[0]:
+            for item in entry_tuple[0]:
                 f.write(recurring_to_str(item) + "\n")
         else:
             f.write("None\n")
         f.write("\nREGULAR\n")
-        if recurring_entries:
-            for item in regular_entries:
+        if entry_tuple[1]:
+            for item in entry_tuple[1]:
                 f.write(regular_to_str(item) + "\n")
         else:
             f.write("None\n")
