@@ -12,7 +12,7 @@ class entry_type(Enum):
 
 class recurring_type(Enum):
     YEARLY = "yearly"
-    MONTHLY = "monthly"
+    MONTHLY = "monthly" #technically charged on 28th or earlier of months
     DAILY = "daily"
     CUSTOM = "custom"
     def __str__(self):
