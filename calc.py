@@ -105,14 +105,16 @@ def calculate_range(entry_tuple: tuple[list[RecurringEntry], list[RegularEntry],
                         budget.add_expense(entry.amount * (total_delta.days // entry.custom_frequency.days))
         #else: not necessary, just ignore out of range entries from loop
 
-
-
-
-
-
     return budget
 
 def calculate_current_month(entry_tuple: tuple[list[RecurringEntry], list[RegularEntry], list[Entry]]) -> Budget:
+    today = dt.date.today()
+    return calculate_range(entry_tuple, dt.date(today.year, today.month, 1), today)
+
+def calculate_current_year(entry_tuple: tuple[list[RecurringEntry], list[RegularEntry], list[Entry]]) -> Budget:
+    today = dt.date.today()
+    return calculate_range(entry_tuple, dt.date(today.year, 1, 1), today)
+
 #    budget = Budget()
 #    today = dt.date.today()
 #    for entry in entry_tuple[1]:
